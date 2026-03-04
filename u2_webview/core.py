@@ -23,7 +23,6 @@ class Webview:
 
     def init_device(self, d):
         """
-        对应 Flask 的 init_app(app)
         将扩展绑定到具体的 uiautomator2 Device 实例上
         """
         self.d = d
@@ -94,7 +93,7 @@ class Webview:
         return self.browser.latest_tab
 
     def detach(self):
-        """清理资源"""
+        """断开链接清理资源"""
         if self.browser:
             self.browser = None
         if self.d and self.local_port:

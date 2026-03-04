@@ -1,16 +1,23 @@
 # 文件：setup.py
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
-    name="u2_webview",                      # 安装时包的名字：pip install u2_webview
-    version="0.1.0",                        # 版本号
+    name="u2_webview",
+    version="0.1.0",
     description="An extension for uiautomator2 to support WebView automation via DrissionPage",
-    author="Younggg",                 # 你的名字
-    packages=find_packages(),               # 自动发现 u2_webview 文件夹
-    install_requires=[                      # 这个包依赖的其他库
+    author="YuYoungG",
+    author_email="younggg2218@gmail.com",
+    packages=find_packages(),
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/YuYoungG/uiautomator2-webview",
+    install_requires=[                      # 依赖的其他库
         "uiautomator2>=2.16.0",
         "DrissionPage>=4.1.0",
-        "adbutils>=0.11.0"                  # 确保 adbutils 存在
+        "adbutils>=0.11.0"
     ],
     python_requires=">=3.8",
 )
