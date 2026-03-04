@@ -3,6 +3,7 @@ import time
 import re
 import socket
 import atexit
+import traceback
 from adbutils import adb
 from DrissionPage import Chromium, ChromiumOptions
 
@@ -56,7 +57,7 @@ class Webview:
                         if match:
                             return match.group(0)
             except Exception:
-                pass
+                traceback.print_exc()
             time.sleep(0.5)
         return None
 
@@ -73,14 +74,20 @@ class Webview:
             raise RuntimeError("❌ 未检测到 WebView Socket，请确认 App 已进入 H5 页面并开启调试")
 
         # 建立 ADB 隧道
-        device = adb.device(serial=self.d.serial)
-        device.forward(f"tcp:{self.local_port}", f"localabstract:{socket_name}")
+        try:
+            device = adb.device(serial=self.d.serial)
+            device.forward(f"tcp:{self.local_port}", f"localabstract:{socket_name}")
+        except Exception:
+            traceback.print_exc()
 
         # 连接 DrissionPage
-        co = ChromiumOptions()
-        co.set_address(f'127.0.0.1:{self.local_port}')
-        self.browser = Chromium(addr_or_opts=co)
-        return self.browser
+        try:
+            co = ChromiumOptions()
+            co.set_address(f'127.0.0.1:{self.local_port}')
+            self.browser = Chromium(addr_or_opts=co)
+            return self.browser
+        except Exception:
+            traceback.print_exc()
 
     @property
     def current_page(self):
@@ -100,5 +107,5 @@ class Webview:
             try:
                 device = adb.device(serial=self.d.serial)
                 device.forward_remove(f"tcp:{self.local_port}")
-            except:
-                pass
+            except Exception:
+                traceback.print_exc()
