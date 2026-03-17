@@ -126,6 +126,64 @@ def run_test(serial):
 
 这是 u2_webview 的核心竞争力。在底层实现了源码级的清理引擎，每次 `detach()` 都会强制停用残留的守护线程并清空单例缓存池，确保每一次重新 `attach()` 面对的都是一个健康、崭新的通信通道。
 
+##  进阶用法：与Kea2框架结合
+
+`u2_webview` 专门为基于性质测试的 Android 自动化测试工具 Kea2 提供了深度适配与语法糖。
+Kea2仓库地址：https://github.com/ecnusse/Kea2
+
+### 为什么需要 `@with_webview` 装饰器？
+
+1.自动建连：在执行你的 H5 逻辑前，自动寻找底层活跃的 DevTools Socket 并建立连接 (attach)。
+
+2.异常拦截与追踪：在探索过程中，如果因页面未加载完毕导致元素找不到，装饰器会完美拦截异常，打印 traceback 堆栈。
+
+3.安全断连：无论代码执行成功还是抛出异常，都会在最后一步强制清理底层的 Socket 隧道和守护线程 (detach)，保证下一次探索的纯净环境。
+
+### Kea2 混合自动化测试示例
+
+将 `@with_webview` 与 Kea2 的 `@precondition` 和 `@prob` 组合使用，你的代码将变得职责分明、极其干净。
+
+```
+import random
+import unittest
+import uiautomator2 as u2
+from kea2 import precondition, prob, max_tries
+# 引入 u2_webview 核心组件与装饰器
+from u2_webview import Webview, with_webview
+
+class HybridAppTest(unittest.TestCase):
+    d: u2.Device
+
+    @classmethod
+    def setUpClass(cls):
+        cls.d.settings["wait_timeout"] = 5.0
+        cls.d.app_clear("com.example.app")
+        cls.webview = Webview(cls.d)
+
+    # ================= 状态流转：处理 H5 弹窗 =================
+    @prob(0.8) 
+    @precondition(
+        lambda self: self.d(text="Slide to complete the puzzle").exists
+    )
+    @with_webview  # 🌟 挂载装饰器，自动接管 H5 生命周期
+    def test_geetest_h5_handler(self):
+        print("💡 发现 WebView 容器，开始自动接管...")
+        # 直接获取current_page即可
+        tab = self.webview.current_page
+        print(f"🌐 当前标题: {tab.title}")
+
+        # 拖拽滑块示例
+        slider = tab.ele('.geetest_slider_button')
+        if slider:
+            tab.actions.hold(slider).move(200, 0, duration=random.uniform(0.8, 1.2)).release()
+            print("✅ 滑块拖拽完成")
+
+        # 关闭弹窗
+        if tab.ele('.geetest_close'):
+            tab.ele('.geetest_close').click()
+            print("✅ H5 弹窗已关闭")
+```
+
 ##  开源协议
 
 本项目采用 [MIT License](https://opensource.org/licenses/MIT) 协议。
