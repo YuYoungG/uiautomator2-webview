@@ -12,6 +12,11 @@
 **`u2_webview` 用来解决二者的局限。**
 它让你在同一个 Python 自动化脚本中，既能用 `u2` 丝滑操作 Android 原生外壳，又能随时调用 `u2_webview` 穿透进入 H5 内部，真正实现“Android 原生 + WebView”混合应用的无缝自动化协同。
 
+##  演示demo
+
+https://github.com/user-attachments/assets/c80233fd-75cd-4ba4-a180-28c097f09a89
+
+
 ##  核心优势
 
 - **免驱动接管 (Driverless)**：不同于传统的 Selenium/Appium，本库无需下载、配置或匹配特定版本的 `chromedriver`。它通过 CDP 协议直接与 WebView 通信，彻底告别驱动版本不匹配的烦恼。
