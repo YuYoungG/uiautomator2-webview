@@ -2,6 +2,16 @@
 
 **u2_webview** 是一个专为 `uiautomator2` 定制的混合应用（Hybrid App）自动化扩展库。它通过集成 `DrissionPage` ，实现了对移动端 WebView 的“无驱动”（Driverless）接管。
 
+##  工具定位
+
+在进行“Android 原生 + WebView H5”的混合应用自动化测试时，开发者通常会面临以下尴尬的割裂感：
+
+- **`chrome://inspect/#devices` 类型工具的局限**：优秀的前端**手动调试**工具，但无法用于编写自动化脚本，更无法去操作 Android 的原生控件。
+- **`uiautomator2` 的局限**：作为安卓自动化神器，它能操控所有原生 UI，但在面对内部嵌套的 WebView 页面时，无法精准提取和交互 HTML 元素。
+
+**`u2_webview` 用来解决二者的局限。**
+它让你在同一个 Python 自动化脚本中，既能用 `u2` 丝滑操作 Android 原生外壳，又能随时调用 `u2_webview` 穿透进入 H5 内部，真正实现“Android 原生 + WebView”混合应用的无缝自动化协同。
+
 ##  核心优势
 
 - **免驱动接管 (Driverless)**：不同于传统的 Selenium/Appium，本库无需下载、配置或匹配特定版本的 `chromedriver`。它通过 CDP 协议直接与 WebView 通信，彻底告别驱动版本不匹配的烦恼。
@@ -113,6 +123,14 @@ def run_test(serial):
 
 ##  常见问题
 
+**Q: u2_webview 和 Appium、Selenium 有何不同？有何优势？**
+
+1. 免驱动 (Driverless)：Appium 与 Selenium 依赖 chromedriver，手机内核一升级脚本就容易因版本不匹配报错。本库基于 CDP 协议直连，永远不需要下载和匹配驱动，无视 WebView 版本更迭。
+
+2. 轻量与速度：Appium 需要庞大的 Node.js 服务端和繁杂的环境配置（Java/Android SDK），通信链路长。本库是纯 Python 栈，局域网直连 WebSocket，执行速度更快。
+
+3. 为“探索测试”而生：传统工具基于线性脚本思维，遇到异常容易直接崩溃。本库配合自带的 @with_webview 装饰器，契合非线性、高频次的探索测试，如与Kea2工具结合使用。
+
 **Q: 为什么找不到 WebView Socket？**
 
 1. 请确认 App 已经进入了包含 H5 的 Activity。
@@ -188,4 +206,4 @@ class HybridAppTest(unittest.TestCase):
 
 本项目采用 [MIT License](https://opensource.org/licenses/MIT) 协议。
 
-**贡献与支持**: 欢迎提交 Issue 或 Pull Request 来完善本项目。！如果这个项目帮助到了你，欢迎点亮 ⭐️ Star！
+**贡献与支持**: 欢迎提交 Issue 或 Pull Request 来完善本项目！如果这个项目帮助到了你，欢迎点亮 ⭐️ Star！
