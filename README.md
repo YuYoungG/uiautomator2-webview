@@ -1,177 +1,176 @@
 # u2_webview
 
-**u2_webview** 是一个专为 `uiautomator2` 定制的混合应用（Hybrid App）自动化扩展库。它通过集成 `DrissionPage` ，实现了对移动端 WebView 的“无驱动”（Driverless）接管。
+<p align="center">
+  <a href="./README.md"><strong>English</strong></a> · <a href="./README_CN.md">简体中文</a>
+</p>
 
-##  工具定位
+**u2_webview** is a hybrid app automation extension library designed for `uiautomator2`. By integrating `DrissionPage`, it provides a driverless way to take control of mobile WebView pages.
 
-在进行“Android 原生 + WebView H5”的混合应用自动化测试时，开发者通常会面临以下尴尬的割裂感：
+## What It Is For
 
-- **`chrome://inspect/#devices` 类型工具的局限**：优秀的前端**手动调试**工具，但无法用于编写自动化脚本，更无法去操作 Android 的原生控件。
-- **`uiautomator2` 的局限**：作为安卓自动化神器，它能操控所有原生 UI，但在面对内部嵌套的 WebView 页面时，无法精准提取和交互 HTML 元素。
+When automating hybrid apps with both Android native UI and WebView H5 content, developers often run into a frustrating split:
 
-**`u2_webview` 用来解决二者的局限。**
-它让你在同一个 Python 自动化脚本中，既能用 `u2` 丝滑操作 Android 原生外壳，又能随时调用 `u2_webview` 穿透进入 H5 内部，真正实现“Android 原生 + WebView”混合应用的无缝自动化协同。
+- **Limitations of tools like `chrome://inspect/#devices`**: great for manual front-end debugging, but not for writing automation scripts or interacting with Android native controls.
+- **Limitations of `uiautomator2`**: excellent for native Android UI, but not precise enough for extracting and interacting with HTML elements inside embedded WebView pages.
 
-##  演示demo
+**`u2_webview` is built to bridge that gap.**
+It lets you use `u2` to operate the Android native shell smoothly in the same Python script, while switching into `u2_webview` whenever you need to step into the H5 layer and achieve seamless hybrid app automation.
+
+## Demo
 
 https://github.com/user-attachments/assets/c80233fd-75cd-4ba4-a180-28c097f09a89
 
+## Key Features
 
-##  核心优势
+- **Driverless takeover**: unlike traditional Selenium/Appium workflows, this library does not require you to download, configure, or match a specific `chromedriver` version. It connects to WebView directly through the CDP protocol, eliminating driver mismatch issues.
+- **Flask-style extension design**: follows the Flask plugin philosophy and supports an application-factory pattern, fully decoupled from the `uiautomator2.Device` instance.
+- **High-performance communication**: uses `adbutils` to build efficient port-forwarding tunnels for responsive and stable H5 interactions.
+- **Minimal API**: a single property, `.current_page`, is enough to operate a mobile H5 page like a browser tab.
+- **Smart proxy protection**: built-in local network shielding ensures local communication with the phone WebView stays direct and error-free, even when the host machine is using a VPN or a system-wide proxy such as Clash.
 
-- **免驱动接管 (Driverless)**：不同于传统的 Selenium/Appium，本库无需下载、配置或匹配特定版本的 `chromedriver`。它通过 CDP 协议直接与 WebView 通信，彻底告别驱动版本不匹配的烦恼。
-- **Flask 扩展模式设计**：遵循 Flask 插件设计哲学，支持“应用工厂”模式，实现与 `uiautomator2.Device` 实例的完全解耦。
-- **高性能通信**：基于 `adbutils` 建立高效的端口转发隧道，确保 H5 操作的高响应速度与稳定性。
-- **API 极简**：只需一个属性 `.current_page`，即可像操作浏览器一样操作手机内的 H5 页面。
-- **智能防代理劫持**：内置本地网络护盾，即使宿主机开启了 VPN 或全局代理（如 Clash），也能保证与手机 WebView 的本地通信直连不报错。
+## Requirements
 
-##  环境要求
+- **Python**: 3.8 or later
+- **Android device**: ADB debugging must be enabled
+- **App under test**: WebView debugging must be enabled (`setWebContentsDebuggingEnabled(true)`)
 
-- **Python**: 3.8 或更高版本
-- **Android 设备**: 需开启 ADB 调试
-- **被测 App**: WebView 必须开启调试模式（`setWebContentsDebuggingEnabled(true)`）
+## Installation
 
-##  安装
+Install the latest stable release from PyPI:
 
-通过 PyPI 直接安装最新稳定版：
-
-```
+```bash
 pip install --upgrade u2_webview
 ```
 
-或者从源码本地安装（开发模式）：
+Or install from source in development mode:
 
-```
-git clone [https://github.com/YuYoungG/uiautomator2-webview.git](https://github.com/YuYoungG/uiautomator2-webview.git)
+```bash
+git clone https://github.com/YuYoungG/uiautomator2-webview.git
 cd uiautomator2-webview
 pip install -e .
 ```
 
-##  使用指南
+## Usage
 
-本库支持两种初始化模式，以适配不同的框架架构。API 极其精简，只需一个属性 .current_page，即可像操作浏览器一样操作手机内的 H5 页面。
+This library supports two initialization styles to fit different framework architectures. The API is intentionally small: with a single `.current_page` property, you can operate H5 content inside the phone just like a browser.
 
-### 1. 基础用法 (直接绑定)
+### 1. Basic usage (direct binding)
 
-适用于简单的脚本测试。
+Suitable for simple scripts.
 
-```
+```python
 import uiautomator2 as u2
 from u2_webview import Webview
 
-# 连接设备
+# Connect to device
 d = u2.connect()
 
-# 实例化扩展并绑定设备
+# Create the extension and bind the device
 webview = Webview(d)
 
-# 访问 H5 页面属性 (会自动触发 attach)
-print(f"当前 H5 标题: {webview.current_page.title}")
+# Access H5 page properties (this will trigger attach automatically)
+print(f"Current H5 title: {webview.current_page.title}")
 
-# 使用 DrissionPage 语法进行操作
-webview.current_page.ele('text:登录').click()
+# Interact with the page using DrissionPage syntax
+webview.current_page.ele('text:Login').click()
 
-# 测试结束，清理资源
+# Clean up resources when finished
 webview.detach()
 
-# 继续原生操作...
-d(text="返回").click()
+# Continue native automation...
+d(text="Back").click()
 ```
 
-### 2. 工厂模式用法 (推荐用于大型框架)
+### 2. Factory-style usage (recommended for larger frameworks)
 
-类似于 Flask 的 `init_app` 模式，适合在设备对象尚未完全确定时预定义扩展。
+Similar to Flask's `init_app` pattern, this is useful when the device object is not known until runtime.
 
-```
+```python
 from u2_webview import Webview
 import uiautomator2 as u2
 
-# 全局预定义扩展对象
+# Predefine the extension globally
 webview = Webview()
 
 def run_test(serial):
     d = u2.connect(serial)
-    
-    # 在运行时绑定具体设备
+
+    # Bind the concrete device at runtime
     webview.init_device(d)
-    
-    # 接管并操作
+
+    # Take over and operate the page
     page = webview.current_page
     page.actions.move_to('.slider').click()
-    
+
     webview.detach()
 ```
 
-##  核心 API 参考
+## Core API Reference
 
 ### `Webview(d=None)`
 
-构造函数。可选参数 `d` 为 `uiautomator2.connect()` 返回的对象。
+Constructor. Optional `d` is the object returned by `uiautomator2.connect()`.
 
 ### `webview.init_device(d)`
 
-将扩展实例绑定到特定的 `uiautomator2` 设备对象。
+Bind the extension instance to a specific `uiautomator2` device object.
 
 ### `webview.attach(timeout=20)`
 
-启动智能探针，扫描并建立与手机 WebView 的可用调试连接。成功后返回 `DrissionPage.Chromium` 对象。
+Start the smart probe, scan for an available WebView debug connection, and establish the connection. Returns a `DrissionPage.Chromium` object on success.
 
-### `webview.current_page` (Property)
+### `webview.current_page` (property)
 
-**核心属性**。获取当前活跃的标签页对象（`ChromiumTab`）。
+**Core property**. Returns the currently active tab object (`ChromiumTab`).
 
-- *注：若未连接，访问此属性将自动调用 `attach()`并具有容错重试机制。*
+- Note: if the extension is not connected yet, accessing this property will automatically call `attach()` with retry handling.
 
 ### `webview.detach()`
 
-**核心清理方法**。安全停用后台事件监听线程，清空框架对象缓存，并移除 ADB 端口转发隧道，彻底释放系统资源。
+**Core cleanup method**. Safely stops the background event-listening thread, clears framework caches, and removes the ADB port-forwarding tunnel to release all system resources.
 
-##  常见问题
+## FAQ
 
-**Q: u2_webview 和 Appium、Selenium 有何不同？有何优势？**
+**Q: How is u2_webview different from Appium or Selenium? What are the advantages?**
 
-1. 免驱动 (Driverless)：Appium 与 Selenium 依赖 chromedriver，手机内核一升级脚本就容易因版本不匹配报错。本库基于 CDP 协议直连，永远不需要下载和匹配驱动，无视 WebView 版本更迭。
+1. Driverless: Appium and Selenium rely on `chromedriver`, and scripts often break when the phone kernel or WebView version changes. This library connects directly through CDP, so there is no need to download or match a driver.
+2. Lightweight and fast: Appium requires a heavy Node.js server and a more complicated environment (Java / Android SDK), which adds extra hops. This library is pure Python and communicates directly over a local WebSocket, so it runs faster.
+3. Built for exploratory testing: traditional tools are based on linear script thinking and can fail hard when something unexpected happens. This library works well with the built-in `@with_webview` decorator and fits non-linear, high-frequency exploratory testing, especially when combined with Kea2.
 
-2. 轻量与速度：Appium 需要庞大的 Node.js 服务端和繁杂的环境配置（Java/Android SDK），通信链路长。本库是纯 Python 栈，局域网直连 WebSocket，执行速度更快。
+**Q: Why can't I find the WebView socket?**
 
-3. 为“探索测试”而生：传统工具基于线性脚本思维，遇到异常容易直接崩溃。本库配合自带的 @with_webview 装饰器，契合非线性、高频次的探索测试，如与Kea2工具结合使用。
+1. Make sure the app has already entered an Activity that contains H5 content.
+2. Make sure WebView debugging is enabled in the app source: `WebView.setWebContentsDebuggingEnabled(true);`. For third-party apps, you may need an Xposed module such as WebViewDebugHook to force it on.
 
-**Q: 为什么找不到 WebView Socket？**
+**Q: Does it support multi-device parallel execution?**
 
-1. 请确认 App 已经进入了包含 H5 的 Activity。
-2. 请确认 App 源码中开启了 WebView 调试：`WebView.setWebContentsDebuggingEnabled(true);`。如果是第三方 App，可能需要使用 Xposed 模块（如 WebViewDebugHook）强制开启。
+Yes. Each `Webview` instance automatically allocates a separate free local port during initialization, so multiple phones can run at the same time without conflicts.
 
-**Q: 是否支持多设备并行？**
+**Q: Why do other libraries often fail after switching H5 pages multiple times, while u2_webview does not?**
 
-支持。每个 `Webview` 实例在初始化时都会自动分配一个独立的本地空闲端口，多台手机同时运行不会发生冲突。
+That is one of `u2_webview`'s core strengths. It includes a source-level cleanup engine underneath: every `detach()` forcefully shuts down leftover daemon threads and clears singleton caches, ensuring that every new `attach()` starts with a healthy and fresh communication channel.
 
-**Q: 为什么在多次切换 H5 时，其他库容易报错误，而 u2_webview 不会？**
+## Advanced Usage: Integration with Kea2
 
-这是 u2_webview 的核心竞争力。在底层实现了源码级的清理引擎，每次 `detach()` 都会强制停用残留的守护线程并清空单例缓存池，确保每一次重新 `attach()` 面对的都是一个健康、崭新的通信通道。
+`u2_webview` provides deep adaptation and syntax sugar for Kea2, an Android automation tool based on property-based testing.
+Kea2 repository: https://github.com/ecnusse/Kea2
 
-##  进阶用法：与Kea2框架结合
+### Why do we need the `@with_webview` decorator?
 
-`u2_webview` 专门为基于性质测试的 Android 自动化测试工具 Kea2 提供了深度适配与语法糖。
-Kea2仓库地址：https://github.com/ecnusse/Kea2
+1. Auto-connect: before executing your H5 logic, it automatically finds the active DevTools socket underneath and establishes the connection (`attach`).
+2. Exception interception and tracing: during exploration, if an element cannot be found because the page has not finished loading, the decorator cleanly intercepts the exception and prints the traceback.
+3. Safe disconnect: whether the code succeeds or raises an exception, it always cleans up the socket tunnel and daemon threads (`detach`) at the end to keep the environment clean for the next exploration.
 
-### 为什么需要 `@with_webview` 装饰器？
+### Example: hybrid automation with Kea2
 
-1.自动建连：在执行你的 H5 逻辑前，自动寻找底层活跃的 DevTools Socket 并建立连接 (attach)。
+By combining `@with_webview` with Kea2's `@precondition` and `@prob`, your code becomes clearer and more maintainable.
 
-2.异常拦截与追踪：在探索过程中，如果因页面未加载完毕导致元素找不到，装饰器会完美拦截异常，打印 traceback 堆栈。
-
-3.安全断连：无论代码执行成功还是抛出异常，都会在最后一步强制清理底层的 Socket 隧道和守护线程 (detach)，保证下一次探索的纯净环境。
-
-### Kea2 混合自动化测试示例
-
-将 `@with_webview` 与 Kea2 的 `@precondition` 和 `@prob` 组合使用，你的代码将变得职责分明、极其干净。
-
-```
+```python
 import random
 import unittest
 import uiautomator2 as u2
 from kea2 import precondition, prob, max_tries
-# 引入 u2_webview 核心组件与装饰器
+# Import the core components and decorator from u2_webview
 from u2_webview import Webview, with_webview
 
 class HybridAppTest(unittest.TestCase):
@@ -183,32 +182,32 @@ class HybridAppTest(unittest.TestCase):
         cls.d.app_clear("com.example.app")
         cls.webview = Webview(cls.d)
 
-    # ================= 状态流转：处理 H5 弹窗 =================
-    @prob(0.8) 
+    # ================= State transition: handle an H5 popup =================
+    @prob(0.8)
     @precondition(
         lambda self: self.d(text="Slide to complete the puzzle").exists
     )
-    @with_webview  # 🌟 挂载装饰器，自动接管 H5 生命周期
+    @with_webview  # 🌟 Attach the decorator and take over the H5 lifecycle automatically
     def test_geetest_h5_handler(self):
-        print("💡 发现 WebView 容器，开始自动接管...")
-        # 直接获取current_page即可
+        print("💡 WebView container found, starting takeover...")
+        # Just access current_page directly
         tab = self.webview.current_page
-        print(f"🌐 当前标题: {tab.title}")
+        print(f"🌐 Current title: {tab.title}")
 
-        # 拖拽滑块示例
+        # Slider drag example
         slider = tab.ele('.geetest_slider_button')
         if slider:
             tab.actions.hold(slider).move(200, 0, duration=random.uniform(0.8, 1.2)).release()
-            print("✅ 滑块拖拽完成")
+            print("✅ Slider dragged successfully")
 
-        # 关闭弹窗
+        # Close popup
         if tab.ele('.geetest_close'):
             tab.ele('.geetest_close').click()
-            print("✅ H5 弹窗已关闭")
+            print("✅ H5 popup closed")
 ```
 
-##  开源协议
+## License
 
-本项目采用 [MIT License](https://opensource.org/licenses/MIT) 协议。
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-**贡献与支持**: 欢迎提交 Issue 或 Pull Request 来完善本项目！如果这个项目帮助到了你，欢迎点亮 ⭐️ Star！
+**Contributions and support**: issues and pull requests are welcome. If this project helps you, please consider giving it a ⭐️ Star!
