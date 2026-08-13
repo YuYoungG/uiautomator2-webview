@@ -157,7 +157,7 @@ Kea2 repository: https://github.com/ecnusse/Kea2
 
 ### Why do we need the `@with_webview` decorator?
 
-1. Auto-connect: before executing your H5 logic, it automatically finds the active DevTools socket underneath and establishes the connection (`attach`).
+1. Lazy auto-connect: the connection (`attach`) is not forced before the method body runs. It is triggered by the first access to `self.webview.current_page`, which polls for the active DevTools socket and establishes the connection. This supports the "native-first" flow: click a native control to enter the H5 page, then operate on it.
 2. Exception interception and tracing: during exploration, if an element cannot be found because the page has not finished loading, the decorator cleanly intercepts the exception and prints the traceback.
 3. Safe disconnect: whether the code succeeds or raises an exception, it always cleans up the socket tunnel and daemon threads (`detach`) at the end to keep the environment clean for the next exploration.
 

@@ -157,7 +157,7 @@ Kea2 仓库地址：https://github.com/ecnusse/Kea2
 
 ### 为什么需要 `@with_webview` 装饰器？
 
-1. 自动建连：在执行 H5 逻辑前，自动寻找底层活跃的 DevTools Socket 并建立连接（attach）。
+1. 懒自动建连：不在方法体前强连（attach）。连接由首次访问 `self.webview.current_page` 触发，它会轮询底层活跃的 DevTools Socket 并建立连接。这支持「原生优先」流程：先点击 native 控件进入 H5 页面，再操作页面内容。
 2. 异常拦截与追踪：在探索过程中，如果因页面未加载完毕导致元素找不到，装饰器会完美拦截异常，打印 traceback 堆栈。
 3. 安全断连：无论代码执行成功还是抛出异常，都会在最后一步强制清理底层的 Socket 隧道和守护线程（detach），保证下一次探索的纯净环境。
 
