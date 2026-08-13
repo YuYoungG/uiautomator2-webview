@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="u2_webview",
-    version="0.1.2",
+    version="0.1.3",
     description="An extension for uiautomator2 to support WebView automation via DrissionPage",
     author="YuYoungG",
     author_email="younggg2218@gmail.com",
@@ -14,10 +14,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/YuYoungG/uiautomator2-webview",
-    install_requires=[                      # 依赖的其他库
+    install_requires=[  # 依赖的其他库
         "uiautomator2>=2.16.0",
         "DrissionPage>=4.1.0",
-        "adbutils>=0.11.0"
+        "adbutils>=0.11.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
