@@ -2,4 +2,4 @@
 from .core import Webview
 from .decorators import with_webview
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
