@@ -107,23 +107,52 @@ def run_test(serial):
 
 ## Core API Reference
 
-### `Webview(d=None)`
+### `Webview(d=None, package=None)`
 
 Constructor. Optional `d` is the object returned by `uiautomator2.connect()`.
+
+- `package`: optional target app package name (e.g. `"com.example.app"`). When several apps
+  on the same device expose WebView debug sockets, setting `package` makes `attach()` take
+  over **only** the socket owned by that app instead of blindly probing all of them.
+  Socket ownership is resolved from the socket name (`<package>_devtools_remote[_<pid>]`)
+  or, when the name only carries a pid (`webview_devtools_remote_<pid>`), via
+  `cat /proc/<pid>/cmdline`.
 
 ### `webview.init_device(d)`
 
 Bind the extension instance to a specific `uiautomator2` device object.
 
-### `webview.attach(timeout=20)`
+### `webview.list_devsockets()`
+
+Discover all devtools remote-debugging sockets currently visible on the device.
+Returns a list of `DevtoolsSocket(name, pid, package)` records — handy for debugging
+"why can't I find my webview" situations:
+
+```python
+for s in webview.list_devsockets():
+    print(s.name, s.pid, s.package)
+```
+
+### `webview.attach(timeout=20, package=None)`
 
 Start the smart probe, scan for an available WebView debug connection, and establish the connection. Returns a `DrissionPage.Chromium` object on success.
+
+- Dead sockets are skipped cheaply: before any heavyweight browser connection is attempted,
+  each candidate endpoint is health-checked with a single `GET /json/version` request.
+- Every failed probe is fully cleaned up (browser driver stopped, adb port forwarding
+  removed), so repeated `attach()` attempts never leak `adb forward` tunnels.
+- Chrome for Android itself (socket `chrome_devtools_remote`, without a pid suffix) is
+  also recognized now.
 
 ### `webview.current_page` (property)
 
 **Core property**. Returns the currently active tab object (`ChromiumTab`).
 
-- Note: if the extension is not connected yet, accessing this property will automatically call `attach()` with retry handling.
+- If the extension is not connected yet, accessing this property will automatically call `attach()` with retry handling.
+- Since 0.2.0, if the existing session turns out to be dead, all resources are cleaned up
+  (`detach()`) and the original error is **raised** — the property no longer silently
+  returns `None` and lets the failure surface later as a confusing `AttributeError`.
+
 
 ### `webview.detach()`
 

@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="u2_webview",
-    version="0.1.3",
+    version="0.2.0",
     description="An extension for uiautomator2 to support WebView automation via DrissionPage",
     author="YuYoungG",
     author_email="younggg2218@gmail.com",

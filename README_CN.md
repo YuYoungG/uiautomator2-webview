@@ -107,23 +107,47 @@ def run_test(serial):
 
 ## 核心 API 参考
 
-### `Webview(d=None)`
+### `Webview(d=None, package=None)`
 
 构造函数。可选参数 `d` 为 `uiautomator2.connect()` 返回的对象。
+
+- `package`：可选的目标应用包名（如 `"com.example.app"`）。当同一台设备上有多个应用都
+  开着 WebView 调试 socket 时，指定 `package` 后 `attach()` 只会接管属于该应用的 socket，
+  不再盲目逐个试探。socket 归属通过 socket 名解析（`<package>_devtools_remote[_<pid>]`）；
+  当名字里只带 pid 时（`webview_devtools_remote_<pid>`），通过
+  `cat /proc/<pid>/cmdline` 解析。
 
 ### `webview.init_device(d)`
 
 将扩展实例绑定到特定的 `uiautomator2` 设备对象。
 
-### `webview.attach(timeout=20)`
+### `webview.list_devsockets()`
+
+列出当前设备上可见的全部 devtools 调试 socket，返回
+`DevtoolsSocket(name, pid, package)` 列表——排查“为什么找不到我的 webview”时非常有用：
+
+```python
+for s in webview.list_devsockets():
+    print(s.name, s.pid, s.package)
+```
+
+### `webview.attach(timeout=20, package=None)`
 
 启动智能探针，扫描并建立与手机 WebView 的可用调试连接。成功后返回 `DrissionPage.Chromium` 对象。
+
+- 僵尸 socket 先廉价探活：每个候选端点先用一次 `GET /json/version` 健康检查，
+  通过后才做重量级的浏览器全量连接。
+- 每次探测失败都会彻底清理（停用浏览器驱动、移除 adb 端口转发），反复 `attach()`
+  不会泄漏 `adb forward` 隧道。
+- 现在也能识别 Chrome 浏览器本体的 socket（`chrome_devtools_remote`，无 pid 后缀）。
 
 ### `webview.current_page`（属性）
 
 **核心属性**。获取当前活跃的标签页对象（`ChromiumTab`）。
 
 - 注：若未连接，访问此属性将自动调用 `attach()`，并具有容错重试机制。
+- 自 0.2.0 起：若已有会话失效，会先彻底清理资源（相当于 `detach()`）再把原始异常
+  **抛出**——不再静默返回 `None`，避免错误在别处才以莫名其妙的 `AttributeError` 出现。
 
 ### `webview.detach()`
 

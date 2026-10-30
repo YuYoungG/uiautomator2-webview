@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import traceback
+import logging
 from functools import wraps
+
+logger = logging.getLogger(__name__)
 
 
 def with_webview(func):
@@ -24,7 +26,8 @@ def with_webview(func):
             if tb is not None and tb.tb_next is not None:
                 tb = tb.tb_next
 
-            traceback.print_exception(type(e), e, tb)
+            logger.error("unhandled error inside @with_webview body",
+                         exc_info=(type(e), e, tb))
 
         finally:
             if hasattr(self, "webview") and self.webview is not None:
